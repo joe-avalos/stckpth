@@ -4,13 +4,16 @@
 namespace App\Controller;
 
 
-use App\Entity\BBCounter;
-use App\Repository\BBCounterRepository;
+use App\Entity\Products;
+use App\Repository\ProductsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 /**
  * Class MainController
@@ -20,44 +23,65 @@ class MainController extends AbstractController
 {
     /**
      * @Route("/", name="bb_homepage")
-     * @param BBCounterRepository $repository
      * @return Response
      */
-    public function index(BBCounterRepository $repository){
+    public function index(ProductsRepository $repository){
 
-        $counters = $repository->findAll();
+        $products = $repository->findAll();
 
         return $this->render('homepage.html.twig', [
-            'greeting'=>'Hello World!',
-            'counters'=>$counters
+            'products'=>$products
         ]);
     }
 
     /**
      * @param EntityManagerInterface $em
-     * @Route("/new", name="bb_new_counter")
+     * @Route("/api/update/{id}", name="bb_api_update", methods={"POST"})
      * @return Response
      */
-    public function newCounter(EntityManagerInterface $em){
-        $counter = new BBCounter();
-        $em->persist($counter);
+    public function updateProduct(Products $products, EntityManagerInterface $em, ProductsRepository $repository){
+        $name = 'Product '.$products->getId() * rand(1,32);
+        $products->setName($name);
         $em->flush();
-        return new Response(sprintf(
-            'New counter id: #%d',
-            $counter->getId()
-        ));
+        $encoder = [new JsonEncoder()];
+        $normalizer = [new ObjectNormalizer()];
+        $serializer = new Serializer($normalizer,$encoder);
+        $check = $serializer->serialize($products, 'json');
+        $response = JsonResponse::fromJsonString($check);
+        return $response;
     }
 
     /**
-     * @Route("/api/increment/{id}", name="bb_api_increment", methods={"POST"})
-     * @param BBCounter $counter
+     * @Route("/api/delete/{id}", name="bb_api_delete", methods={"POST"})
      * @param EntityManagerInterface $em
      * @return JsonResponse
      */
-    public function increment(BBCounter $counter, EntityManagerInterface $em){
+    public function deleteProduct(Products $products, EntityManagerInterface $em){
 
-        $counter->setCountNum($counter->getCountNum() + 1);
+        $products->setActive(false);
         $em->flush();
-        return new JsonResponse(['count'=>$counter->getCountNum(), 'id'=> $counter->getId()]);
+        return new JsonResponse(['id'=>$products->getId()]);
+    }
+
+    /**
+     * @Route("/api/create", name="bb_api_create", methods={"POST"})
+     * @param EntityManagerInterface $em
+     * @return JsonResponse
+     */
+    public function createProduct(EntityManagerInterface $em){
+
+        $product = new Products();
+        $product->setName($_POST['name']);
+        $product->setDescription($_POST['description']??'');
+        $product->setPrice($_POST['price']);
+        $product->setActive(true);
+        $em->persist($product);
+        $em->flush();
+        $encoder = [new JsonEncoder()];
+        $normalizer = [new ObjectNormalizer()];
+        $serializer = new Serializer($normalizer,$encoder);
+        $check = $serializer->serialize($product, 'json');
+        $response = JsonResponse::fromJsonString($check);
+        return $response;
     }
 }

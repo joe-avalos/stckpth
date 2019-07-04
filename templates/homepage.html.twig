@@ -1,11 +1,23 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
-    <h1>{{ greeting }}</h1>
-    {% for counter in counters %}
-    <p class="js-increment-count-{{ counter.id }}">{{ counter.countNum }}</p>
-    <a href="{{ path('bb_api_increment',{id: counter.id}) }}" methods="POST" class="js-increment" >increment</a>
-    {% endfor %}
+    <form action="{{ path('bb_api_create') }}" class="js-create-form">
+        <input type="text" name="name">
+        <input type="text" name="description">
+        <input type="text" name="price">
+        <input type="submit">
+    </form>
+    <table class="js-product-table">
+        {% for product in products if product.active %}
+            <tr class="js-product-{{ product.id }}">
+                <td class="js-product-name-{{ product.id }}">{{ product.name }}</td>
+                <td>{{ product.description }}</td>
+                <td>{{ product.price }}</td>
+                <td><a href="{{ path('bb_api_delete',{id: product.id}) }}" class="js-delete">delete</a></td>
+                <td><a href="{{ path('bb_api_update',{id: product.id}) }}" class="js-update">update</a></td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
