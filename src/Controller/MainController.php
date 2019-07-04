@@ -15,6 +15,8 @@ class MainController extends AbstractController
      * @return Response
      */
     public function index(){
-        return new Response('Hello World!');
+        return $this->render('homepage.html.twig', [
+            'greeting'=>'Hello World!'
+        ]);
     }
 }
