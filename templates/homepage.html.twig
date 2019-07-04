@@ -2,8 +2,10 @@
 
 {% block body %}
     <h1>{{ greeting }}</h1>
-    <p class="js-increment-count">{{ countNum }}</p>
-    <a href="{{ path('bb_api_increment',{id: countId}) }}" class="js-increment">increment</a>
+    {% for counter in counters %}
+    <p class="js-increment-count-{{ counter.id }}">{{ counter.countNum }}</p>
+    <a href="{{ path('bb_api_increment',{id: counter.id}) }}" methods="POST" class="js-increment" >increment</a>
+    {% endfor %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

@@ -7,7 +7,8 @@ $(document).ready(()=>{
       url: $link.attr('href')
       }
     ).done(data => {
-      $('.js-increment-count').html(data.count)
+      let classSelector = '.js-increment-count-'+data.id
+      $(classSelector).html(data.count)
     })
   })
 })

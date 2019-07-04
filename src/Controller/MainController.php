@@ -20,22 +20,22 @@ class MainController extends AbstractController
 {
     /**
      * @Route("/", name="bb_homepage")
+     * @param BBCounterRepository $repository
      * @return Response
      */
     public function index(BBCounterRepository $repository){
 
-        $counter = $repository->findOneBy(['id'=>1]);
+        $counters = $repository->findAll();
 
         return $this->render('homepage.html.twig', [
             'greeting'=>'Hello World!',
-            'countId'=>$counter->getId(),
-            'countNum'=>$counter->getCountNum()
+            'counters'=>$counters
         ]);
     }
 
     /**
      * @param EntityManagerInterface $em
-     * @Route("/new")
+     * @Route("/new", name="bb_new_counter")
      * @return Response
      */
     public function newCounter(EntityManagerInterface $em){
@@ -50,12 +50,14 @@ class MainController extends AbstractController
 
     /**
      * @Route("/api/increment/{id}", name="bb_api_increment", methods={"POST"})
+     * @param BBCounter $counter
+     * @param EntityManagerInterface $em
      * @return JsonResponse
      */
     public function increment(BBCounter $counter, EntityManagerInterface $em){
 
         $counter->setCountNum($counter->getCountNum() + 1);
         $em->flush();
-        return new JsonResponse(['count'=>$counter->getCountNum()]);
+        return new JsonResponse(['count'=>$counter->getCountNum(), 'id'=> $counter->getId()]);
     }
 }
